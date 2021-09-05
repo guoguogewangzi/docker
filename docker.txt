@@ -1,0 +1,283 @@
+安装docker
+
+1.支持centos 7 /8 ...
+
+2.时间同步
+yum -y install ntp ntpdate
+ntpdate cn.pool.ntp.org
+date -s "2021-03-28 01:06:40"
+hwclock --systohc
+
+较旧的 Docker 版本称为 docker 或 docker-engine 。如果已安装这些程序，请卸载它们以及相关的依赖项。
+3. sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+				  
+				  
+安装所需的软件包。yum-utils 提供了 yum-config-manager ，并且 device mapper 存储驱动程序需要 device-mapper-persistent-data 和 lvm2。				  
+4.sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+
+
+使用以下命令来设置稳定的仓库。
+5.sudo yum-config-manager --add-repo  http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+然后通过sed命令，替换download.docker.com等域名
+6.sudo sed -i 's+download.docker.com+mirrors.tuna.tsinghua.edu.cn/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+
+列出并排序您存储库中可用的版本。此示例按版本号（从高到低）对结果进行排序。
+7.yum list docker-ce --showduplicates | sort -r
+
+安装最新版本的 Docker Engine-Community 和 containerd
+8.sudo yum install docker-ce docker-ce-cli containerd.io -y
+
+
+9.vi /etc/sysconfig/docker-storage
+将配置文件修改为：
+DOCKER_STORAGE_OPTIONS="--selinux-enabled --log-driver=journald --signature-verification=false"
+
+写入指定参数并添加加速网址：
+10.mkdir /etc/docker/;tee /etc/docker/daemon.json <<-'EOF' 
+{ "registry-mirrors": ["https://rxfx01gg.mirror.aliyuncs.com"],"storage-driver": "devicemapper"} 
+EOF
+
+重新加载daemon.json
+11.sudo systemctl daemon-reload
+
+重启docker
+12.systemctl restart docker
+
+验证是否安装成功
+13.sudo docker run hello-world/sudo docker search mysql
+
+查看镜像列表
+14.docker images list
+
+加速器是否成功
+15.docker info | grep https://
+
+结束！
+
+
+docker 基础教程
+判断docker 加速地址是否能用
+cat /etc/docker/daemon.json
+curl -I https://rxfx01gg.mirror.aliyuncs.com
+返回 200 ok
+
+docker run hello-world
+docker run hello-world:latest
+docker run ubuntu:latest /bin/echo helloworld
+
+docker run training/webapp python app.py
+curl http://172.17.0.2:5000
+
+查看现启动的容器
+docker ps
+
+查看历史所有容器:包括启动和未启动
+docker ps -a 
+
+
+删除镜像：
+docker rmi 镜像id
+
+删除容器：
+docker rm 容器id
+
+删除所有容器
+docker ps -a | grep -v CONTAINER|cut -d ' ' -f1|xargs docker rm
+
+
+查看容器ip:IP不是固定的
+docker inspect 容器id
+docker inspect 容器id | grep IP
+
+
+查看容器内部top情况
+docker top 容器id
+
+实际运行在真机上
+ps aux | grep app.py
+
+进入容器内部
+docker exec -it 容器id /bin/bash
+
+停止容器
+docker stop 容器id
+
+启动容器
+docker start 容器id
+
+redis服务:映射目录启动
+进入容器查看数据保存目录：
+docker exec -it redis2 /bin/bash
+keys *
+set a 1
+save
+
+docker run --rm --name redis4 -v /data/redis:/data redis
+redis-cli -h 172.17.0.2
+keys *
+set a 1
+save
+ls /data/redis/
+
+
+搜索镜像
+docker search django
+
+拉取镜像
+docker pull python:3.6
+
+打包镜像：-m '备注'，取名：python_django:3.6，--rm指退出容器时自动删除
+docker run -it --rm python:3.6 /bin/bash
+docker commit -m 'installed django' 容器id python_django:3.6
+验证
+docker run -it --rm python_django:3.6 /bin/bash
+python
+import django
+exit
+
+构建Dockerfile；Dockerfile文件：自动化依赖基础镜像构建其他服务
+FROM python_django:3.6
+RUN pip install flask
+
+mkdir build
+mv Dockerfile build/
+cd build/
+docker build -t python_django_flask:3.6 .
+
+上传自己的docker仓库
+链接：https://hub.docker.com/?ref=login
+
+登录：
+docker login
+用户名：879086359
+密码：879086359
+
+改名镜像:用户名/python_django:3.6
+docker tag python_django:3.6 879086359/python_django:3.6
+
+push上传
+docker push 879086359/python_django
+
+拉取
+docker pull 879086359/python_django
+
+结束！
+
+补充：
+
+debian/ubuntu更新源
+更新源分两种，http和https，一般将https中的s删除就可以实现http的更新源,stretch:指查看系统版本:codename:stretch版本
+mv  /etc/apt/sources.list /etc/apt/sources.list.bak
+
+stretch版本:
+cat <<EOF > /etc/apt/sources.list
+deb http://mirrors.163.com/debian/  stretch main non-free contrib
+deb http://mirrors.163.com/debian/  stretch-updates main non-free contrib
+deb http://mirrors.163.com/debian/  stretch-backports main non-free contrib
+deb-src http://mirrors.163.com/debian/  stretch main non-free contrib
+deb-src http://mirrors.163.com/debian/  stretch-updates main non-free contrib
+deb-src http://mirrors.163.com/debian/  stretch-backports main non-free contrib
+deb http://mirrors.163.com/debian-security/  stretch/updates main non-free contrib
+deb-src http://mirrors.163.com/debian-security/  stretch/updates main non-free contri
+EOF
+
+focal版本:
+# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+cat <<EOF > /etc/apt/sources.list
+deb http://mirrors.163.com/ubuntu/ focal main restricted universe multiverse
+deb http://mirrors.163.com/ubuntu/ focal-security main restricted universe multiverse
+deb http://mirrors.163.com/ubuntu/ focal-updates main restricted universe multiverse
+deb http://mirrors.163.com/ubuntu/ focal-backports main restricted universe multiverse
+# deb-src http://mirrors.163.com/ubuntu/ focal main restricted universe multiverse
+# deb-src http://mirrors.163.com/ubuntu/ focal-security main restricted universe multiverse
+# deb-src http://mirrors.163.com/ubuntu/ focal-updates main restricted universe multiverse
+# deb-src http://mirrors.163.com/ubuntu/ focal-backports main restricted universe multiverse
+EOF
+
+cat /etc/apt/sources.list
+
+清空apt缓存，执行更新
+apt-get clean
+apt-get update
+
+出现以下信息则结束
+Reading package lists... Done
+
+自动化编译环境:docker-compose build
+启动整个环境:docker-compose up -d
+删除整个环境:docker-compose down -v
+
+查看容器ID : docker ps -a
+启动容器 docker start 8cedee2d535e 
+进入容器 docker exec -it 8cedee2d535e  /bin/bash
+
+解决启动并自动退出问题
+https://blog.csdn.net/fengqing5578/article/details/94554897
+
+vim编辑器：sudo apt-get install vim-gtk
+
+启动方式目录：/etc/init.d
+服务状态：systemctl list-unit-files --type=service
+
+复制文件
+容器内到外：docker cp testtomcat:/usr/local/tomcat/webapps/test/js/test.js /opt
+容器外到内：docker cp /opt/test.js testtomcat:/usr/local/tomcat/webapps/test/js
+
+单独创建一个Docker内部的网段(172.18.0.X): mynet:网段名称
+docker network create --subnet=172.18.0.0/16 mynet
+
+删除刚刚创建的mynet网段
+docker network rm mynet
+
+使用固定ip：172.18.0.2创建并运行容器：--net mynet：指定mynet网段名称，--ip 172.18.0.2：指定ip
+docker run -it --net mynet --ip 172.18.0.2 python:3.8 bash
+
+映射端口启动:左边5000为宿主机端口，右边5000为容器端口
+docker run -it -p 5000:5000 --name=p1 python:3.8 bash
+
+映射多个端口
+docker run -it -p 5000:5000 -p 3306:3306 --name=p1 python:3.8 bash
+
+目录挂载(目录映射)：-v /root/test:/root/project，:左边为宿主机目录，:右边为容器内部目录
+docker run -it -v /root/test:/root/project --name=p1 python:3.8 bash
+
+指定容器端口启动：#-d:后台运行，-p :127.0.0.1:80:80 :将容器内部的80端口映射到宿主机的80端口，且只有宿主机本地可访问,--name=zhangxin：起名为zhangxin
+docker run -it -d -p 127.0.0.1:80:80 --name=zhangxin drupal:8.5.0 /bin/bash 
+
+
+创建python环境：最终命令,然后进入容器，用pip安装需要的模块
+docker run -it -d --name=p1 -p 9500:5000 -v /root/project/:/root/project --net mynet --ip 172.18.0.2 python:3.8 bash
+
+
+创建mysql环境：-e MYSQL_ROOT_PASSWORD=abc123456:环境变参数，指定登录密码为:abc123456
+docker  run --name m1 -p 4306:3306 --net mynet --ip 172.18.0.3 -v /root/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=abc123456 -d mysql:8.0.18
+
+实战：发布部署python项目：假如已有flask web项目
+1、将项目代码的里连接数据库的ip改为数据库容器ip，端口号改为数据库容器端口:3306
+2、将run()改为：run(host="0.0.0.0"),表示可以远程访问
+3、运行一遍，生成最新的字节码文件pyc
+4、删除源码.py文件，删除venv环境文件夹，删除.idea文件夹(pycharm配置)，将__pycache__里的字节码文件提取出来并改名与源码文件相同
+5、tar打包
+6、上传tar包到docker的宿主机上
+7、解压tar包到docker的挂载目录下
+8、docker exec -it 容器id bash
+9、后台运行项目：nohup python app.pyc > logs.txt ，nohup：后台运行，> logs.txt:将控制台的输出到logs.txt
+10、保证python程序在后台运行而不退出，关闭shell窗口
+发布成功
+
+
+
+
+
+
+
+
+
