@@ -52,13 +52,30 @@ EOF
 12.systemctl restart docker
 
 验证是否安装成功
-13.sudo docker run hello-world/sudo docker search mysql
+13.sudo docker run hello-world或sudo docker search mysql
 
 查看镜像列表
 14.docker images list
 
 加速器是否成功
 15.docker info | grep https://
+
+docker-compose安装：
+下载地址：https://github.com/docker/compose/releases
+
+下载并保存在：/usr/local/bin/docker-compose
+sudo curl -L  "https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+添加可执行权限
+sudo chmod +x /usr/local/bin/docker-compose
+
+创建软链接
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+测试是否成功:
+[root@VM-0-10-centos bin]# docker-compose --version
+Docker Compose version v2.1.1
+
 
 结束！
 
