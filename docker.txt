@@ -174,17 +174,17 @@ docker build -t python_django_flask:3.6 .
 
 登录：
 docker login
-用户名：879086359
-密码：879086359
+用户名：*********
+密码：*********
 
 改名镜像:用户名/python_django:3.6
-docker tag python_django:3.6 879086359/python_django:3.6
+docker tag python_django:3.6 *********/python_django:3.6
 
 push上传
-docker push 879086359/python_django
+docker push *********/python_django
 
 拉取
-docker pull 879086359/python_django
+docker pull *********/python_django
 
 结束！
 
