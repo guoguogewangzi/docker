@@ -292,7 +292,10 @@ docker  run --name m1 -p 4306:3306 --net mynet --ip 172.18.0.3 -v /root/mysql:/v
 
 
 
+备注：
 
+Docker 图形化工具 Portainer
+https://zhuanlan.zhihu.com/p/371592044
 
 
 
