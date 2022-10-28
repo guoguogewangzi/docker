@@ -29,6 +29,9 @@ hwclock --systohc
 然后通过sed命令，替换download.docker.com等域名
 6.sudo sed -i 's+download.docker.com+mirrors.tuna.tsinghua.edu.cn/docker-ce+' /etc/yum.repos.d/docker-ce.repo
 
+sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+
+
 列出并排序您存储库中可用的版本。此示例按版本号（从高到低）对结果进行排序。
 7.yum list docker-ce --showduplicates | sort -r
 
@@ -45,8 +48,14 @@ DOCKER_STORAGE_OPTIONS="--selinux-enabled --log-driver=journald --signature-veri
 { "registry-mirrors": ["https://rxfx01gg.mirror.aliyuncs.com"],"storage-driver": "devicemapper"} 
 EOF
 
+tee /etc/docker/daemon.json <<-'EOF' 
+{ "registry-mirrors": ["https://rxfx01gg.mirror.aliyuncs.com"]} 
+EOF
+
 重新加载daemon.json
 11.sudo systemctl daemon-reload
+
+
 
 重启docker
 12.systemctl restart docker
@@ -299,5 +308,38 @@ https://zhuanlan.zhihu.com/p/371592044
 
 
 
+kali安装docker环境
+1.安装https协议、CA证书、dirmngr
+apt-get update
+ 
+apt-get install -y apt-transport-https ca-certificates
+ 
+apt-get install dirmngr
+
+2.添加GPG密钥并添加更新源
+curl -fsSL https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/debian/gpg | sudo apt-key add -
+
+echo 'deb https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/debian/ buster stable' | sudo tee /etc/apt/sources.list.d/docker.list
+
+
+3.系统更新以及安装docker
+apt-get update
+
+apt install docker-ce
+
+4.启动docker服务器
+service docker start
+
+5.安装compose
+curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.5/docker-compose-`uname -s`-`uname -m` > /usr/bin/docker-compose
+
+chmod +x /usr/bin/docker-compose
+
+安装测试
+docker version   查看docker的版本信息
+ 
+docker images   查看拥有的images
+ 
+docker ps       查看docker container 
 
 
