@@ -307,7 +307,7 @@ Docker 图形化工具 Portainer
 https://zhuanlan.zhihu.com/p/371592044
 
 
-
+-----------------------------------------------------------------------------------------------------------------------------------
 kali安装docker环境
 1.安装https协议、CA证书、dirmngr
 apt-get update
@@ -342,4 +342,21 @@ docker images   查看拥有的images
  
 docker ps       查看docker container 
 
+------------------------------------------------------------------------------------------------------------------------------------------------
 
+加载镜像，指定容器名启动
+[root@VM-12-6-centos ~]# docker images
+REPOSITORY                                     TAG       IMAGE ID       CREATED          SIZE
+ubuntu                                         16.04     b6f507652425   15 months ago    135MB
+[root@VM-12-6-centos ~]# docker run -it --name test1 ubuntu:16.04
+root@7232e104c693:/# exit
+exit
+[root@VM-12-6-centos ~]# docker ps -a
+CONTAINER ID   IMAGE                                                 COMMAND                  CREATED          STATUS                        PORTS     NAMES
+7232e104c693   ubuntu:16.04                                          "/bin/bash"              46 seconds ago   Exited (0) 36 seconds ago               test1
+[root@VM-12-6-centos ~]#
+
+解释：
+-it:交互式启动，-id:后台启动
+--name:指定启动容器名
+ubuntu:16.04:加载的镜像
