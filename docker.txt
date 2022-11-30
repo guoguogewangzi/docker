@@ -369,3 +369,63 @@ sudo docker ps -a|grep Exited|awk '{print $1}'
 #查询所有的容器，过滤出Exited状态的容器，列出容器ID，删除这些容器
 sudo docker rm `docker ps -a|grep Exited|awk '{print $1}'`
 ------------------------------------------------------------------------------------------------------------------------------------------------
+
+docker容器备份、恢复和迁移
+
+1. 备份容器
+
+（1）查看需要备份的容器id
+docker ps
+
+（2）创建快照（镜像）
+docker commit -p 30b8f18f20b4 container-backup
+解释：
+30b8f18f20b4：需要备份的容器id
+container-backup：将生产的镜像名称
+
+
+（3）查看生成，镜像名；container-backup
+docker images
+。
+
+（4）方法一：上传到docker hub
+登录
+docker login
+
+打标签
+docker tag a25ddfec4d2a arunpyasi/container-backup:test
+
+解释：
+a25ddfec4d2a：原镜像id/原镜像名
+arunpyasi/container-backup:test：新镜像名
+
+push上传
+docker push arunpyasi/container-backup:test
+
+（4）方法二：保存在本地
+作为tar包备份
+docker save -o ~/container-backup.tar container-backup
+
+解释：
+~/container-backup.tar：生成的tar包
+container-backup：被打包的镜像名
+
+查看是否生成
+ls
+
+2. 恢复容器
+（5）方法一：pull拉取
+docker pull arunpyasi/container-backup:test
+
+（5）方法二：load tar包
+docker load -i ~/container-backup.tar
+
+（6）查看是否成功恢复
+docker images
+
+（7）测试是否可以运行
+docker run -it --name test1 ubuntu:16.04
+
+3.迁移docker容器
+迁移容器同时涉及到了上面两个操作，备份和恢复
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
