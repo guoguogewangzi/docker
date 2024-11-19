@@ -453,3 +453,12 @@ docker容器里面没有vi或者vim如何修改文件
 1.使用cat命令查看文件内容：cat file.txt
 2.使用sed命令进行文本替换：sed -i 's/原内容/修改后的内容/g' file.txt
 3.再次使用cat命令查看文件内容，确认修改已生效。
+
+---------------------------------
+为已创建的容器修改重启策略：
+docker update --restart=always 容器ID（或容器名）
+
+验证重启策略：
+docker inspect o2server1 --format='{{.HostConfig.RestartPolicy.Name}}'
+
+输出会显示类似 always 的策略名称。
